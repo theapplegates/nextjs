@@ -54,6 +54,7 @@ node_modules/
 # agent files
 **/.claude/*.local.json
 **/.claude/*.local.md
+<<<<<<< HEAD
 # env etc
 .env
 .local.env

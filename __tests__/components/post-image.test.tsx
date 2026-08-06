@@ -82,6 +82,7 @@ describe('PostImage', () => {
     expect(screen.getByAltText('Test image')).toHaveAttribute('loading', 'lazy')
   })
 
+
   describe('Cloudinary JXL pipeline', () => {
     // assets/images/Image-1 has generated breakpoints in cloudinary-breakpoints.json
     beforeEach(() => {
@@ -124,4 +125,5 @@ describe('PostImage', () => {
       expect(img.closest('picture')).toBeNull()
     })
   })
+
 })

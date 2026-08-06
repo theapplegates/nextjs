@@ -33,12 +33,16 @@ export function PostImage({
 }: PostImageProps) {
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState(false)
+  
+  // We define this here to track if the image loading fails
+  const isImageError = error
 
   useEffect(() => {
     setLoaded(false)
     setError(false)
   }, [src])
 
+  // 1. If there is no source, return the placeholder/empty div
   if (!src || src === '') {
     return (
       <div className={cn('relative w-full h-full flex items-center justify-center bg-muted', className)}>
@@ -48,13 +52,10 @@ export function PostImage({
   }
 
   // Logic to determine if we should use the Cloudinary Responsive pipeline
-  // 1. Strip leading slash and extension for lookup
   const publicId = src.replace(/^\/+/, '').replace(/\.[^.]+$/, '')
   const hasBreakpoints = breakpoints[publicId]
 
-  // Cloudinary IS the optimization (jxl/avif/webp via CDN), so route any image
-  // with generated breakpoints through it even when `unoptimized` is set — that
-  // flag only means "skip next/image", which doesn't apply to the <picture> path.
+  // 2. If we have specific breakpoints, use the Cloudinary component
   if (hasBreakpoints) {
     return (
       <CloudinaryPicture
@@ -67,8 +68,7 @@ export function PostImage({
     )
   }
 
-  const hasImage = !error
-
+  // 3. Otherwise, render the standard Next.js Image
   return (
     <>
       {!loaded && (
@@ -91,7 +91,7 @@ export function PostImage({
           )}
         </>
       )}
-      {hasImage && (
+      {!isImageError && (
         <Image
           src={src}
           alt={alt}

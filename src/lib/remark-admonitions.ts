@@ -54,7 +54,7 @@ export default function remarkAdmonitions() {
       let contentNodes = node.children
       const firstChild = node.children[0]
 
-      // Check if the first child has directiveLabel (e.g :::tip[title])
+      // Check if the first child has directiveLabel (e.g. :::tip[title])
       if (
         firstChild !== undefined
         && 'data' in firstChild
@@ -68,8 +68,7 @@ export default function remarkAdmonitions() {
       }
 
       // Transform the mdast directive node to a hast aside node
-      // See https://github.com/syntax-tree/mdast-util-to-hast#fields-on-nodes
-      node.data = {
+      (node as any).data = {
         hName: 'aside',
         hProperties: {
           type: node.name,
