@@ -18,7 +18,6 @@ import remarkGfm from 'remark-gfm'
 import remarkGitHub from 'remark-github'
 import remarkMath from 'remark-math'
 import rehypeUnwrapImages from '@/lib/rehype-unwrap-images'
-import rehypeVoidElements from '@/lib/rehype-void-elements'
 import remarkAdmonitions from '@/lib/remark-admonitions'
 import { siteConfig } from '@/lib/site'
 
@@ -80,11 +79,7 @@ async function generatePostData(filePath: string): Promise<Post> {
         rehypeKatex,
         rehypeMdxCodeProps,
         rehypeUnwrapImages,
-        // Must run last: ensures all void elements (img, source, br …)
-        // are marked self-closing before hast serialises to JSX.
-        // Without this, <img> inside <picture> causes an MDX parse error:
-        // "Unexpected closing tag </picture>, expected </img>"
-        rehypeVoidElements,
+        // rehypeVoidElements removed — CldImage never emits raw void HTML
       ],
     },
   })
@@ -107,14 +102,12 @@ async function getPostsData(locale: Locale = 'en-US'): Promise<Post[]> {
   const postsData: Post[] = []
   const contentPath = getContentPath(locale)
 
-  // Check if locale directory exists, fallback to en-US if not
   try {
     await fs.access(contentPath)
   } catch {
     const fallbackPath = getContentPath('en-US')
     for await (const filePath of walk(fallbackPath)) {
       const fileExt = path.extname(filePath)
-
       if (['.md', '.mdx'].includes(fileExt)) {
         const postData = await generatePostData(filePath)
         postsData.push(postData)
@@ -125,7 +118,6 @@ async function getPostsData(locale: Locale = 'en-US'): Promise<Post[]> {
 
   for await (const filePath of walk(contentPath)) {
     const fileExt = path.extname(filePath)
-
     if (['.md', '.mdx'].includes(fileExt)) {
       const postData = await generatePostData(filePath)
       postsData.push(postData)
@@ -140,16 +132,16 @@ async function getPostsData(locale: Locale = 'en-US'): Promise<Post[]> {
   })
 
   const sortedLinkedPostsData = sortedPostsData.map((post, index, posts) => {
-    const prevPost
-      = index === 0
+    const prevPost =
+      index === 0
         ? null
         : {
             slug: posts[index - 1].slug,
             title: posts[index - 1].title,
             description: posts[index - 1].description,
           }
-    const nextPost
-      = index === posts.length - 1
+    const nextPost =
+      index === posts.length - 1
         ? null
         : {
             slug: posts[index + 1].slug,
@@ -157,11 +149,7 @@ async function getPostsData(locale: Locale = 'en-US'): Promise<Post[]> {
             description: posts[index + 1].description,
           }
 
-    return {
-      ...post,
-      prevPost,
-      nextPost,
-    }
+    return { ...post, prevPost, nextPost }
   })
 
   return sortedLinkedPostsData
@@ -186,19 +174,14 @@ async function getPostsMeta(locale: Locale = 'en-US', cachedData?: Post[]): Prom
   )
 
   const allTags = Object.keys(tagCounts).sort((a, b) => {
-    if (a === 'All')
-      return -1
-    if (b === 'All')
-      return 1
+    if (a === 'All') return -1
+    if (b === 'All') return 1
     return a.localeCompare(b)
   })
 
   return {
     posts,
-    tags: {
-      allTags,
-      tagCounts,
-    },
+    tags: { allTags, tagCounts },
   }
 }
 
@@ -206,7 +189,6 @@ async function getPostData(slug: string, locale: Locale = 'en-US', cachedData?: 
   const postsData = cachedData ?? (await getPostsData(locale))
   const postData = postsData.find(post => post.slug === slug)
 
-  // If post not found in current locale, try fallback to en-US
   if (!postData && locale !== 'en-US') {
     const fallbackPostsData = await getPostsData('en-US')
     return fallbackPostsData.find(post => post.slug === slug)

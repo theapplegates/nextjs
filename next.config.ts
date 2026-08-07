@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next'
 import createNextIntlPlugin from 'next-intl/plugin'
+import { withNextCloudinary } from 'next-cloudinary/config'
 
 const withNextIntl = createNextIntlPlugin()
 
@@ -13,8 +14,7 @@ const nextConfig: NextConfig = {
     root: process.cwd(),
   },
 
-  // Allow next/image to serve optimised versions of Cloudinary URLs in
-  // the Next.js Image fallback branch of PostImage.
+  // res.cloudinary.com is whitelisted for next/image fallback paths.
   images: {
     remotePatterns: [
       {
@@ -26,4 +26,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default withNextIntl(nextConfig)
+export default withNextCloudinary(withNextIntl(nextConfig))
