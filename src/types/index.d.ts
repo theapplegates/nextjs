@@ -5,12 +5,28 @@ export declare type BuildTime = string | number | Date
 export declare type Tag = string
 export declare type Tags = Record<Tag, number>
 
+/** Structured photo credit, sourced from post frontmatter `imageCredit:` */
+export interface ImageCredit {
+  /** The display caption shown before the attribution line. */
+  caption?: string
+  /** Photographer / creator display name. */
+  author: string
+  /** URL to the photographer's profile page. */
+  authorUrl: string
+  /** Name of the image host, e.g. "Unsplash". */
+  source: string
+  /** URL to the specific image page on the host. */
+  sourceUrl: string
+}
+
 export interface PostMeta {
   slug: string
   title: string
   description?: string
   author?: string
   thumbnail?: string
+  /** Optional structured image credit rendered below the hero thumbnail. */
+  imageCredit?: ImageCredit
   createTime?: string
   updateTime?: string
   readingTime: number
@@ -53,6 +69,7 @@ export interface MDXFrontMatter {
   author?: string
   date?: string
   thumbnail?: string
+  imageCredit?: ImageCredit
   tags?: Tag[]
 }
 

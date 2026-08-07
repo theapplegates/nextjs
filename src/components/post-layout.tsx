@@ -1,5 +1,6 @@
 import type { Post } from '@/types'
 import { BackToTop } from '@/components/back-to-top'
+import { ImageCreditCaption } from '@/components/image-credit'
 import { PostComment } from '@/components/post-comment'
 import { PostContent } from '@/components/post-content'
 import { PostFooter } from '@/components/post-footer'
@@ -13,15 +14,32 @@ interface PostLayoutProps {
   post: Post
 }
 
-export function PostLayout({ post: { source, thumbnail, title, slug, prevPost, nextPost } }: PostLayoutProps) {
+export function PostLayout({
+  post: { source, thumbnail, imageCredit, title, slug, prevPost, nextPost },
+}: PostLayoutProps) {
   return (
     <>
       <PostMobileTOC title={title} />
       <div className="border-border container mx-auto flex px-6 lg:border-r lg:px-0">
         <article className="border-border min-w-0 flex-1 border-x">
-          <div className="relative h-64 w-full overflow-hidden md:h-96 lg:h-128">
-            <PostImage src={thumbnail} alt={title} />
-          </div>
+          {/*
+            Wrap the hero image in <figure> so the optional <figcaption>
+            is semantically associated with it. The figure collapses to
+            just the image when no imageCredit is present in frontmatter.
+          */}
+          <figure className="m-0 p-0">
+            <div className="relative h-64 w-full overflow-hidden md:h-96 lg:h-128">
+              <PostImage
+                src={thumbnail}
+                alt={imageCredit?.caption ?? title}
+                priority
+              />
+            </div>
+            {imageCredit && (
+              <ImageCreditCaption credit={imageCredit} />
+            )}
+          </figure>
+
           <PostSection>
             <PostContent source={source} />
           </PostSection>
