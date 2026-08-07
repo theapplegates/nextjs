@@ -1,6 +1,5 @@
 import type { NextConfig } from 'next'
 import createNextIntlPlugin from 'next-intl/plugin'
-import { withNextCloudinary } from 'next-cloudinary/config'
 
 const withNextIntl = createNextIntlPlugin()
 
@@ -15,6 +14,7 @@ const nextConfig: NextConfig = {
   },
 
   // res.cloudinary.com is whitelisted for next/image fallback paths.
+  // next-cloudinary needs no config wrapper — only NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME in .env.local
   images: {
     remotePatterns: [
       {
@@ -26,4 +26,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default withNextCloudinary(withNextIntl(nextConfig))
+export default withNextIntl(nextConfig)
