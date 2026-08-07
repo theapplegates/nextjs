@@ -18,6 +18,7 @@ import remarkGfm from 'remark-gfm'
 import remarkGitHub from 'remark-github'
 import remarkMath from 'remark-math'
 import rehypeUnwrapImages from '@/lib/rehype-unwrap-images'
+import rehypeVoidElements from '@/lib/rehype-void-elements'
 import remarkAdmonitions from '@/lib/remark-admonitions'
 import { siteConfig } from '@/lib/site'
 
@@ -79,6 +80,11 @@ async function generatePostData(filePath: string): Promise<Post> {
         rehypeKatex,
         rehypeMdxCodeProps,
         rehypeUnwrapImages,
+        // Must run last: ensures all void elements (img, source, br …)
+        // are marked self-closing before hast serialises to JSX.
+        // Without this, <img> inside <picture> causes an MDX parse error:
+        // "Unexpected closing tag </picture>, expected </img>"
+        rehypeVoidElements,
       ],
     },
   })

@@ -8,56 +8,67 @@ function isImgElement(child: ElementContent): child is Element {
   return child.type === 'element' && child.tagName === 'img'
 }
 
+function isPictureElement(child: ElementContent): child is Element {
+  return child.type === 'element' && child.tagName === 'picture'
+}
+
 function isWhitespaceText(child: ElementContent): child is Text {
   return child.type === 'text' && WHITESPACE_REGEX.test(child.value)
 }
 
 /**
- * Check if a paragraph only contains image elements (and optional whitespace text).
- * This handles cases like:
- * - Single image: `<p><img /></p>`
- * - Multiple images: `<p><img /><img /></p>`
- * - Images with whitespace: `<p> <img /> </p>`
+ * Check if a paragraph only contains image/picture elements (and optional
+ * whitespace text nodes). Handles:
+ *   - Single image:   `<p><img /></p>`
+ *   - Picture block:  `<p><picture>...</picture></p>`
+ *   - Mixed:          `<p><img /><img /></p>`
+ *   - With whitespace:`<p> <img /> </p>`
  */
 function isImageOnlyParagraph(children: ElementContent[]): boolean {
-  if (children.length === 0) {
-    return false
-  }
-
-  return children.every(child => isImgElement(child) || isWhitespaceText(child))
+  if (children.length === 0) return false
+  return children.every(
+    child => isImgElement(child) || isPictureElement(child) || isWhitespaceText(child),
+  )
 }
 
 /**
- * Rehype plugin to unwrap images from paragraph elements.
+ * Rehype plugin to unwrap images AND picture elements from paragraph wrappers.
  *
- * In Markdown, standalone images are wrapped in `<p>` tags by default.
- * When using custom MDX components that render `<figure>` for images,
- * this creates invalid HTML: `<p><figure>...</figure></p>`.
+ * MDX re-parses the hast output as JSX. A `<picture>` block that lands inside
+ * a `<p>` causes:
  *
- * This plugin removes the wrapping `<p>` tag when it only contains images,
- * preventing hydration errors in React.
+ *   Unexpected closing tag `</picture>`, expected corresponding closing tag
+ *   for `<img>`
+ *
+ * because JSX treats `<img>` as an open element (void elements need `/>`).
+ * Unwrapping `<picture>` from `<p>` eliminates this parse path entirely.
  *
  * @example
- * Before: <p><img src="..." alt="..." /></p>
- * After: <img src="..." alt="..." />
+ * Before: <p><img src="..." /></p>
+ * After:  <img src="..." />
+ *
+ * Before: <p><picture><source ... /><img ... /></picture></p>
+ * After:  <picture><source ... /><img ... /></picture>
  */
 export default function rehypeUnwrapImages() {
   return (tree: Root) => {
-    visit(tree, 'element', (node: Element, index: number | undefined, parent: Parent | undefined) => {
-      if (node.tagName !== 'p' || index === undefined || parent === undefined) {
-        return
-      }
+    visit(
+      tree,
+      'element',
+      (node: Element, index: number | undefined, parent: Parent | undefined) => {
+        if (node.tagName !== 'p' || index === undefined || parent === undefined) {
+          return
+        }
 
-      if (isImageOnlyParagraph(node.children)) {
-        // Extract only the img elements (filter out whitespace text nodes)
-        const imageNodes = node.children.filter(isImgElement)
-
-        // Replace the paragraph with its image children
-        parent.children.splice(index, 1, ...imageNodes)
-
-        // Return the index to revisit this position since we modified the tree
-        return index
-      }
-    })
+        if (isImageOnlyParagraph(node.children)) {
+          // Keep img and picture nodes; discard whitespace text nodes
+          const mediaNodes = node.children.filter(
+            child => isImgElement(child) || isPictureElement(child),
+          )
+          parent.children.splice(index, 1, ...mediaNodes)
+          return index
+        }
+      },
+    )
   }
 }
