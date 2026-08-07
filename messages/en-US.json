@@ -7,7 +7,7 @@
   "routes": {
     "posts": {
       "name": "Posts",
-      "title": "Sabertaz Blog",
+      "title": "Living Life",
       "description": "Sharing technical articles and thoughts."
     },
     "about": {
