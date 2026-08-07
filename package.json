@@ -40,8 +40,7 @@
     "e2e:ui": "playwright test --ui",
     "e2e:report": "playwright show-report",
     "changeset": "commit-and-tag-version --dry-run -s",
-    "release": "commit-and-tag-version -s",
-    "cloudinary:breakpoints": "NODE_OPTIONS=--max-old-space-size=8192 node --env-file=.env scripts/cloudinary-breakpoints.mjs"
+    "release": "commit-and-tag-version -s"
   },
   "dependencies": {
     "@bprogress/next": "^3.2.12",
